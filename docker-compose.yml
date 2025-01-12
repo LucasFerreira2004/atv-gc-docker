@@ -1,0 +1,36 @@
+version: '3.7'
+
+services:
+  spring-boot-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    container_name: demo-api
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/atvGC
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: "12345"
+    depends_on:
+      - postgres-container
+    networks:
+      app-network:
+
+  postgres-container:
+    image: postgres:15
+    ports: 
+      - 5433:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: atvGC
+    networks:
+      app-network:
+
+networks:
+  app-network:
+    driver: bridge
+
+
+
