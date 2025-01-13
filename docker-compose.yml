@@ -1,36 +1,58 @@
-version: '3.7'
-
 services:
-  spring-boot-app:
+  # POSTGRES
+  postgres-docker:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB= atvGC
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - dev-network
+
+  # PGADMIN
+  pgadmin-docker:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmindata:/var/lib/pgadmin
+    depends_on:
+      - postgres-docker
+    networks:
+      - dev-network
+
+  # API
+  app:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
-    container_name: demo-api
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/atvGC
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: "12345"
     depends_on:
-      - postgres-container
-    networks:
-      app-network:
-
-  postgres-container:
-    image: postgres:15
-    ports: 
-      - 5433:5432
+      - postgres-docker
+      - pgadmin-docker
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 12345
-      POSTGRES_DB: atvGC
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-docker:5432/atvGC
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
     networks:
-      app-network:
+      - dev-network
 
+# REDE
 networks:
-  app-network:
+  dev-network:
     driver: bridge
 
-
-
+# VOLUMES
+volumes:
+  pgdata:
+    driver: local
+  pgadmindata:
+    driver: local
